@@ -14,6 +14,10 @@ def get_balance(wallet_name: str | None = None, db=Depends(get_db), current_user
     return wallets_service.get_balance(db, current_user, wallet_name)
 
 
+@router.get('/wallets', response_model=list[WalletResponse])
+def get_wallets(db=Depends(get_db), current_user: User = Depends(get_current_user)):
+    return wallets_service.get_wallets_list(db, current_user)
+
 
 @router.post('/wallets', response_model=WalletResponse)
 def create_wallet(wallet: CrateWalletRequest, db=Depends(get_db), current_user: User = Depends(get_current_user)):
