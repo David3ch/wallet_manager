@@ -99,6 +99,6 @@ class TransferCreateSchema(BaseModel):
 
     @field_validator('amount')
     def amount_gt_zero(cls, val: Decimal) -> Decimal:
-        if val < 0:
-            raise ValueError('Amount cannot be negative')
+        if val <= 0:
+            raise ValueError('Amount must be positive')
         return val
