@@ -21,6 +21,12 @@ def get_balance(db: Session, current_user: User, wallet_name: str | None = None)
     return {'wallet': wallet.name, 'balance': wallet.balance}
 
 
+def get_wallets_list(db: Session, current_user: User) -> list[WalletResponse]:
+    # список всех кошельков пользователя (нужен фронтенду)
+    wallets = wallets_repository.get_all_wallets(db, current_user.id)
+    return [WalletResponse.model_validate(w) for w in wallets]
+
+
 def create_wallet(db: Session, current_user: User, wallet: CrateWalletRequest) -> WalletResponse:
     # Проверяем существует ли такое кошелек
     if wallets_repository.is_wallet_exists(db, current_user.id, wallet.name):
