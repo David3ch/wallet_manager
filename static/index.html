@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finance</title>
+<style>
+  :root {
+    --bg: #f4f5fa; --card: #ffffff; --text: #1b1e2b; --muted: #7a8094; --line: #e8eaf2;
+    --accent: #5b5bf0; --accent-2: #8b5cf6; --green: #12b76a; --red: #f04438; --amber: #f59e0b;
+    --green-bg: #e7f8f0; --red-bg: #fdecea; --blue-bg: #eceefe;
+    --shadow: 0 8px 28px rgba(27, 30, 43, .07); --radius: 18px;
+  }
+  [data-theme="dark"] {
+    --bg: #0f1117; --card: #181b25; --text: #eceef6; --muted: #8b91a7; --line: #262a38;
+    --green-bg: #12301f; --red-bg: #371a1a; --blue-bg: #20244a;
+    --shadow: 0 8px 28px rgba(0, 0, 0, .35);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  .hidden { display: none !important; }
+  .container { max-width: 1040px; margin: 0 auto; padding: 0 20px 64px; }
+
+  /* ---------- top bar ---------- */
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 22px 0 10px; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; letter-spacing: -.02em; }
+  .logo { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; color: #fff; font-size: 18px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 6px 16px rgba(91, 91, 240, .35); }
+  .top-actions { display: flex; align-items: center; gap: 8px; }
+  .chip-btn { border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 8px 12px; cursor: pointer;
+    font-size: 13px; font-weight: 600; transition: transform .1s, border-color .15s; }
+  .chip-btn:hover { border-color: var(--accent); }
+  .chip-btn:active { transform: scale(.97); }
+  .user-pill { color: var(--muted); font-size: 13px; padding: 0 6px; }
+
+  /* ---------- buttons ---------- */
+  .btn { border: 0; border-radius: 12px; padding: 11px 18px; font-weight: 600; cursor: pointer; transition: transform .1s, opacity .15s, box-shadow .15s; }
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { opacity: .6; cursor: default; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 6px 18px rgba(91, 91, 240, .3); }
+  .btn-ghost { background: transparent; border: 1px solid var(--line); }
+  .btn-ghost:hover { border-color: var(--accent); }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-blue { background: var(--accent); color: #fff; }
+
+  /* ---------- auth ---------- */
+  .auth-wrap { min-height: 80vh; display: grid; place-items: center; }
+  .auth-card { background: var(--card); border-radius: 24px; box-shadow: var(--shadow); padding: 34px; width: 100%; max-width: 420px; }
+  .auth-card h1 { margin: 14px 0 4px; font-size: 26px; letter-spacing: -.02em; }
+  .auth-card p { margin: 0 0 20px; color: var(--muted); }
+  .auth-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .auth-actions .btn { flex: 1; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 16px; }
+
+  /* ---------- forms ---------- */
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 14px 0 6px; }
+  input, select { width: 100%; padding: 11px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); outline: none; transition: border-color .15s, box-shadow .15s; }
+  input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91, 91, 240, .15); }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 16px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ---------- totals ---------- */
+  .greeting { margin: 14px 0 16px; }
+  .greeting h2 { margin: 0; font-size: 24px; letter-spacing: -.02em; }
+  .greeting span { color: var(--muted); font-size: 14px; }
+  .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+  .total-card { border-radius: var(--radius); padding: 20px; color: #fff; position: relative; overflow: hidden; box-shadow: var(--shadow); }
+  .total-card::after { content: ""; position: absolute; right: -30px; top: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255, 255, 255, .13); }
+  .total-card .lbl { font-size: 12px; font-weight: 700; letter-spacing: .08em; opacity: .85; }
+  .total-card .val { font-size: 28px; font-weight: 700; margin-top: 8px; letter-spacing: -.02em; word-break: break-all; }
+  .g0 { background: linear-gradient(135deg, #5b5bf0, #8b5cf6); }
+  .g1 { background: linear-gradient(135deg, #0ea5e9, #5b5bf0); }
+  .g2 { background: linear-gradient(135deg, #10b981, #0ea5e9); }
+  .g3 { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+
+  /* ---------- sections ---------- */
+  .section { margin-top: 34px; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .section-head h3 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+  .quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+  .quick .btn { padding: 14px 10px; font-size: 15px; }
+
+  .wallets { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .wallet { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); border: 1px solid transparent; transition: transform .15s, border-color .15s; cursor: pointer; text-align: left; }
+  .wallet:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .wallet.active { border-color: var(--accent); }
+  .wallet .top { display: flex; justify-content: space-between; align-items: center; }
+  .wallet .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 8px; background: var(--blue-bg); color: var(--accent); letter-spacing: .05em; }
+  .wallet .bal { font-size: 24px; font-weight: 700; margin-top: 14px; letter-spacing: -.02em; word-break: break-all; }
+  .empty { background: var(--card); border: 2px dashed var(--line); border-radius: var(--radius); padding: 30px; text-align: center; color: var(--muted); }
+
+  /* ---------- operations ---------- */
+  .filters { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 10px; align-items: end; background: var(--card); padding: 14px; border-radius: var(--radius); box-shadow: var(--shadow); }
+  .filters label { margin: 0 0 5px; font-size: 12px; }
+  .stats { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+  .stat { background: var(--card); border-radius: 12px; padding: 8px 12px; font-size: 13px; box-shadow: var(--shadow); }
+  .stat b.in { color: var(--green); } .stat b.out { color: var(--red); }
+  .ops { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .op { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .op:last-child { border-bottom: 0; }
+  .op .ico { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; font-size: 18px; flex: none; }
+  .ico.income { background: var(--green-bg); color: var(--green); }
+  .ico.expense { background: var(--red-bg); color: var(--red); }
+  .ico.transfer { background: var(--blue-bg); color: var(--accent); }
+  .op .mid { flex: 1; min-width: 0; }
+  .op .title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .op .sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .op .amt { font-weight: 700; white-space: nowrap; text-align: right; }
+  .amt.income { color: var(--green); } .amt.expense { color: var(--red); } .amt.transfer { color: var(--accent); }
+  .ops .empty { border: 0; border-radius: 0; }
+
+  /* ---------- dialogs ---------- */
+  dialog { border: 0; border-radius: 22px; padding: 26px; width: min(440px, calc(100vw - 32px)); background: var(--card); color: var(--text); box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+  dialog::backdrop { background: rgba(10, 12, 20, .5); backdrop-filter: blur(3px); }
+  dialog h3 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.01em; }
+  .dlg-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .dlg-actions .btn { flex: 1; }
+
+  /* ---------- toast ---------- */
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: #1b1e2b; color: #fff; padding: 12px 18px; border-radius: 14px; font-size: 14px; opacity: 0; pointer-events: none; transition: .25s; max-width: calc(100vw - 32px); z-index: 99; box-shadow: 0 10px 30px rgba(0, 0, 0, .3); }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+  #toast.err { background: var(--red); }
+
+  @media (max-width: 640px) {
+    .filters { grid-template-columns: 1fr 1fr; }
+    .filters > :first-child { grid-column: 1 / -1; }
+    .filters button { grid-column: 1 / -1; }
+    .quick .btn { font-size: 14px; }
+    .user-pill { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="topbar">
+    <div class="brand"><div class="logo">₣</div><span>Finance</span></div>
+    <div class="top-actions">
+      <span class="user-pill" id="userPill"></span>
+      <button class="chip-btn" id="langBtn" title="Language">RU</button>
+      <button class="chip-btn" id="themeBtn" title="Theme">☾</button>
+      <button class="chip-btn hidden" id="logoutBtn" data-i18n="logout">Log out</button>
+    </div>
+  </header>
+
+  <!-- ===== AUTH ===== -->
+  <main id="authView" class="auth-wrap hidden">
+    <form class="auth-card" id="authForm" autocomplete="off">
+      <div class="logo" style="width:46px;height:46px;font-size:24px;border-radius:15px">₣</div>
+      <h1 data-i18n="signInTitle">Welcome</h1>
+      <p data-i18n="signInSub">Sign in with your login or create a new account.</p>
+      <label for="loginInput" data-i18n="login">Login</label>
+      <input id="loginInput" maxlength="128" required data-i18n-ph="loginPh" placeholder="e.g. david" autofocus>
+      <div class="auth-actions">
+        <button type="submit" class="btn btn-primary" id="signInBtn" data-i18n="signIn">Sign in</button>
+        <button type="button" class="btn btn-ghost" id="registerBtn" data-i18n="register">Create account</button>
+      </div>
+      <div class="note" data-i18n="authNote">The login is your access key — anyone who knows it can open your account.</div>
+    </form>
+  </main>
+
+  <!-- ===== APP ===== -->
+  <main id="appView" class="hidden">
+    <div class="greeting">
+      <h2><span id="helloText" style="font-size:24px;color:inherit"></span></h2>
+      <span data-i18n="totalNote">Total balance by currency</span>
+    </div>
+    <div class="totals" id="totals"></div>
+
+    <div class="quick">
+      <button class="btn btn-green" id="incomeBtn">＋ <span data-i18n="income">Income</span></button>
+      <button class="btn btn-red" id="expenseBtn">－ <span data-i18n="expense">Expense</span></button>
+      <button class="btn btn-blue" id="transferBtn">⇄ <span data-i18n="transfer">Transfer</span></button>
+    </div>
+
+    <section class="section">
+      <div class="section-head">
+        <h3 data-i18n="wallets">Wallets</h3>
+        <button class="chip-btn" id="newWalletBtn">＋ <span data-i18n="newWallet">New wallet</span></button>
+      </div>
+      <div class="wallets" id="wallets"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3 data-i18n="operations">Operations</h3></div>
+      <div class="filters">
+        <div>
+          <label for="fWallet" data-i18n="wallet">Wallet</label>
+          <select id="fWallet"></select>
+        </div>
+        <div>
+          <label for="fFrom" data-i18n="from">From</label>
+          <input type="date" id="fFrom">
+        </div>
+        <div>
+          <label for="fTo" data-i18n="to">To</label>
+          <input type="date" id="fTo">
+        </div>
+        <button class="chip-btn" id="fReset" data-i18n="reset" style="padding:11px 14px">Reset</button>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="ops" id="ops"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ===== DIALOGS ===== -->
+<dialog id="walletDlg">
+  <form id="walletForm" autocomplete="off">
+    <h3 data-i18n="newWallet">New wallet</h3>
+    <label for="wName" data-i18n="walletName">Name</label>
+    <input id="wName" maxlength="128" required>
+    <div class="row">
+      <div>
+        <label for="wBalance" data-i18n="initialBalance">Initial balance</label>
+        <input id="wBalance" type="number" step="0.01" min="0" value="0" required>
+      </div>
+      <div>
+        <label for="wCurrency" data-i18n="currency">Currency</label>
+        <select id="wCurrency">
+          <option value="amd">AMD ֏</option>
+          <option value="usd">USD $</option>
+          <option value="eur">EUR €</option>
+          <option value="rub">RUB ₽</option>
+        </select>
+      </div>
+    </div>
+    <div class="dlg-actions">
+      <button type="button" class="btn btn-ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="btn btn-primary" data-i18n="save">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="moneyDlg">
+  <form id="moneyForm" autocomplete="off">
+    <h3 id="moneyTitle"></h3>
+    <label for="mWallet" data-i18n="wallet">Wallet</label>
+    <select id="mWallet"></select>
+    <div class="hint" id="mHint"></div>
+    <label for="mAmount" data-i18n="amount">Amount</label>
+    <input id="mAmount" type="number" step="0.01" min="0.01" required>
+    <label for="mDesc" data-i18n="description">Description</label>
+    <input id="mDesc" maxlength="250" data-i18n-ph="descPh" placeholder="Groceries, salary…">
+    <div class="dlg-actions">
+      <button type="button" class="btn btn-ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="mSubmit"></button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="transferDlg">
+  <form id="transferForm" autocomplete="off">
+    <h3 data-i18n="transfer">Transfer</h3>
+    <label for="tFrom" data-i18n="fromWallet">From wallet</label>
+    <select id="tFrom"></select>
+    <div class="hint" id="tHint"></div>
+    <label for="tTo" data-i18n="toWallet">To wallet</label>
+    <select id="tTo"></select>
+    <div class="hint" id="tConvert"></div>
+    <label for="tAmount" data-i18n="amount">Amount</label>
+    <input id="tAmount" type="number" step="0.01" min="0.01" required>
+    <div class="dlg-actions">
+      <button type="button" class="btn btn-ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="btn btn-primary" data-i18n="send">Send</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------------------------------------------------------------- config
+  // Served by FastAPI → same origin. Opened as a plain file → talk to localhost:8000.
+  const API = location.protocol === 'file:' ? 'http://localhost:8000/api/v1' : '/api/v1';
+
+  const I18N = {
+    en: {
+      logout: 'Log out', signInTitle: 'Welcome', signInSub: 'Sign in with your login or create a new account.',
+      login: 'Login', loginPh: 'e.g. david', signIn: 'Sign in', register: 'Create account',
+      authNote: 'The login is your access key — anyone who knows it can open your account.',
+      hello: 'Hello', totalNote: 'Total balance by currency', noTotals: 'No wallets yet', balanceWord: 'BALANCE',
+      income: 'Income', expense: 'Expense', transfer: 'Transfer',
+      wallets: 'Wallets', newWallet: 'New wallet', wallet: 'Wallet', operations: 'Operations',
+      from: 'From', to: 'To', reset: 'Reset', allWallets: 'All wallets',
+      noWallets: 'No wallets yet. Create your first one to get started.', noOps: 'No operations found',
+      walletName: 'Name', initialBalance: 'Initial balance', currency: 'Currency',
+      amount: 'Amount', description: 'Description', descPh: 'Groceries, salary…',
+      fromWallet: 'From wallet', toWallet: 'To wallet',
+      cancel: 'Cancel', save: 'Save', add: 'Add', send: 'Send',
+      available: 'Available', convertNote: 'Different currencies — the amount is converted at the current exchange rate.',
+      needTwo: 'You need at least two wallets to make a transfer.', needWallet: 'Create a wallet first.',
+      sameWallet: 'Choose two different wallets.', badAmount: 'Enter an amount greater than zero.',
+      saved: 'Saved', transferTo: 'Transfer to', inList: 'Income in list', outList: 'Expenses in list',
+      network: 'Cannot reach the server', badLogin: 'Enter a login.', unknown: 'Something went wrong',
+      addIncome: 'Add income', addExpense: 'Add expense'
+    },
+    ru: {
+      logout: 'Выйти', signInTitle: 'Добро пожаловать', signInSub: 'Войдите по логину или создайте новый аккаунт.',
+      login: 'Логин', loginPh: 'например, david', signIn: 'Войти', register: 'Создать аккаунт',
+      authNote: 'Логин — это ключ доступа: тот, кто его знает, может открыть ваш аккаунт.',
+      hello: 'Привет', totalNote: 'Общий баланс по валютам', noTotals: 'Кошельков пока нет', balanceWord: 'БАЛАНС',
+      income: 'Доход', expense: 'Расход', transfer: 'Перевод',
+      wallets: 'Кошельки', newWallet: 'Новый кошелёк', wallet: 'Кошелёк', operations: 'Операции',
+      from: 'С', to: 'По', reset: 'Сброс', allWallets: 'Все кошельки',
+      noWallets: 'Кошельков пока нет. Создайте первый, чтобы начать.', noOps: 'Операций не найдено',
+      walletName: 'Название', initialBalance: 'Начальный баланс', currency: 'Валюта',
+      amount: 'Сумма', description: 'Описание', descPh: 'Продукты, зарплата…',
+      fromWallet: 'Из кошелька', toWallet: 'В кошелёк',
+      cancel: 'Отмена', save: 'Сохранить', add: 'Добавить', send: 'Перевести',
+      available: 'Доступно', convertNote: 'Разные валюты — сумма конвертируется по текущему курсу.',
+      needTwo: 'Для перевода нужно минимум два кошелька.', needWallet: 'Сначала создайте кошелёк.',
+      sameWallet: 'Выберите два разных кошелька.', badAmount: 'Введите сумму больше нуля.',
+      saved: 'Сохранено', transferTo: 'Перевод в', inList: 'Доходы в списке', outList: 'Расходы в списке',
+      network: 'Нет связи с сервером', badLogin: 'Введите логин.', unknown: 'Что-то пошло не так',
+      addIncome: 'Добавить доход', addExpense: 'Добавить расход'
+    }
+  };
+
+  const SYMBOL = { amd: '֏', rub: '₽', usd: '$', eur: '€' };
+  const ICON = { income: '↓', expense: '↑', transfer: '⇄' };
+
+  const state = {
+    token: localStorage.getItem('ft_token') || '',
+    user: null,
+    wallets: [],
+    ops: [],
+    lang: localStorage.getItem('ft_lang') || ((navigator.language || '').toLowerCase().startsWith('ru') ? 'ru' : 'en'),
+    moneyMode: 'income'
+  };
+
+  const $ = id => document.getElementById(id);
+  const t = key => (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key;
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function fmt(n) {
+    const v = Number(n);
+    if (!isFinite(v)) return String(n);
+    return new Intl.NumberFormat(state.lang === 'ru' ? 'ru-RU' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+  }
+  const money = (n, cur) => `${fmt(n)} ${SYMBOL[cur] || (cur || '').toUpperCase()}`;
+  const walletById = id => state.wallets.find(w => w.id === Number(id));
+
+  // ---------------------------------------------------------------- UI helpers
+  let toastTimer;
+  function toast(msg, isErr) {
+    const el = $('toast');
+    el.textContent = msg;
+    el.className = 'show' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.className = ''; }, isErr ? 4500 : 2200);
+  }
+
+  function applyI18n() {
+    document.documentElement.lang = state.lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+    $('langBtn').textContent = state.lang === 'ru' ? 'EN' : 'RU';
+    if (state.user) renderAll();
+  }
+
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('ft_theme', theme);
+    $('themeBtn').textContent = theme === 'dark' ? '☀' : '☾';
+  }
+
+  // ---------------------------------------------------------------- API
+  async function api(path, { method = 'GET', body, query } = {}) {
+    let url = API + path;
+    if (query) {
+      const qs = new URLSearchParams();
+      Object.entries(query).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '') qs.append(k, v); });
+      const s = qs.toString();
+      if (s) url += '?' + s;
+    }
+    const headers = {};
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    if (state.token) headers['Authorization'] = 'Bearer ' + state.token;
+
+    let res;
+    try {
+      res = await fetch(url, { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined });
+    } catch (e) {
+      throw new Error(t('network'));
+    }
+    let data = null;
+    try { data = await res.json(); } catch (e) { /* empty body */ }
+    if (!res.ok) {
+      if (res.status === 401 && state.user) { logout(); }
+      throw new Error(errorText(data) || t('unknown'));
+    }
+    return data;
+  }
+
+  function errorText(data) {
+    if (!data || data.detail === undefined) return '';
+    if (typeof data.detail === 'string') return data.detail;
+    if (Array.isArray(data.detail)) {
+      return data.detail.map(d => String(d.msg || '').replace(/^Value error, /, '')).filter(Boolean).join('; ');
+    }
+    return '';
+  }
+
+  // ---------------------------------------------------------------- auth
+  async function enter(login, create) {
+    if (!login) { toast(t('badLogin'), true); return; }
+    $('signInBtn').disabled = $('registerBtn').disabled = true;
+    try {
+      if (create) await api('/users', { method: 'POST', body: { login } });
+      state.token = login;
+      state.user = await api('/users/me');
+      localStorage.setItem('ft_token', login);
+      await showApp();
+    } catch (e) {
+      state.token = ''; state.user = null;
+      toast(e.message, true);
+    } finally {
+      $('signInBtn').disabled = $('registerBtn').disabled = false;
+    }
+  }
+
+  function logout() {
+    state.token = ''; state.user = null; state.wallets = []; state.ops = [];
+    localStorage.removeItem('ft_token');
+    $('appView').classList.add('hidden');
+    $('authView').classList.remove('hidden');
+    $('logoutBtn').classList.add('hidden');
+    $('userPill').textContent = '';
+    $('loginInput').value = '';
+  }
+
+  async function showApp() {
+    $('authView').classList.add('hidden');
+    $('appView').classList.remove('hidden');
+    $('logoutBtn').classList.remove('hidden');
+    $('userPill').textContent = state.user.login;
+    await refresh();
+  }
+
+  // ---------------------------------------------------------------- data
+  async function refresh() {
+    try {
+      state.wallets = await api('/wallets');
+      renderFilterWallets();
+      await loadOps();
+    } catch (e) { toast(e.message, true); }
+    renderAll();
+  }
+
+  async function loadOps() {
+    try {
+      state.ops = await api('/operations', {
+        query: { wallet_id: $('fWallet').value, date_from: $('fFrom').value, date_to: $('fTo').value }
+      });
+    } catch (e) { toast(e.message, true); state.ops = []; }
+    renderOps();
+  }
+
+  // ---------------------------------------------------------------- render
+  function renderAll() {
+    renderHello(); renderTotals(); renderWallets(); renderFilterWallets(); renderOps();
+  }
+
+  function renderHello() {
+    $('helloText').textContent = state.user ? `${t('hello')}, ${state.user.login}` : '';
+  }
+
+  function renderTotals() {
+    const sums = {};
+    state.wallets.forEach(w => { sums[w.currency] = (sums[w.currency] || 0) + Number(w.balance); });
+    const cur = Object.keys(sums);
+    if (!cur.length) {
+      $('totals').innerHTML = `<div class="total-card g0"><div class="lbl">${esc(t('balanceWord'))}</div><div class="val">—</div></div>`;
+      return;
+    }
+    $('totals').innerHTML = cur.map((c, i) =>
+      `<div class="total-card g${i % 4}"><div class="lbl">${esc(c.toUpperCase())}</div><div class="val">${esc(fmt(sums[c]))} ${esc(SYMBOL[c] || '')}</div></div>`
+    ).join('');
+  }
+
+  function renderWallets() {
+    const box = $('wallets');
+    if (!state.wallets.length) { box.innerHTML = `<div class="empty" style="grid-column:1/-1">${esc(t('noWallets'))}</div>`; return; }
+    const active = $('fWallet').value;
+    box.innerHTML = state.wallets.map(w => `
+      <button class="wallet ${String(w.id) === active ? 'active' : ''}" data-id="${w.id}">
+        <div class="top"><span class="name">${esc(w.name)}</span><span class="badge">${esc(w.currency.toUpperCase())}</span></div>
+        <div class="bal">${esc(fmt(w.balance))} ${esc(SYMBOL[w.currency] || '')}</div>
+      </button>`).join('');
+  }
+
+  function renderFilterWallets() {
+    const sel = $('fWallet');
+    const prev = sel.value;
+    sel.innerHTML = `<option value="">${esc(t('allWallets'))}</option>` +
+      state.wallets.map(w => `<option value="${w.id}">${esc(w.name)} (${esc(w.currency.toUpperCase())})</option>`).join('');
+    if (state.wallets.some(w => String(w.id) === prev)) sel.value = prev;
+  }
+
+  function opTitle(op) {
+    if (op.type === 'transfer' && op.category && op.category.startsWith('Transfer to ')) {
+      return `${t('transferTo')} ${op.category.slice('Transfer to '.length)}`;
+    }
+    return op.category || t(op.type);
+  }
+
+  function renderOps() {
+    const inSum = {}, outSum = {};
+    state.ops.forEach(o => {
+      if (o.type === 'income') inSum[o.currency] = (inSum[o.currency] || 0) + Number(o.amount);
+      if (o.type === 'expense') outSum[o.currency] = (outSum[o.currency] || 0) + Number(o.amount);
+    });
+    const join = (m, sign) => Object.keys(m).map(c => `${sign}${fmt(m[c])} ${SYMBOL[c] || c}`).join(' · ');
+    let stats = '';
+    if (Object.keys(inSum).length) stats += `<div class="stat">${esc(t('inList'))}: <b class="in">${esc(join(inSum, '+'))}</b></div>`;
+    if (Object.keys(outSum).length) stats += `<div class="stat">${esc(t('outList'))}: <b class="out">${esc(join(outSum, '−'))}</b></div>`;
+    $('stats').innerHTML = stats;
+
+    const box = $('ops');
+    if (!state.ops.length) { box.innerHTML = `<div class="empty">${esc(t('noOps'))}</div>`; return; }
+    box.innerHTML = state.ops.map(o => {
+      const w = walletById(o.wallet_id);
+      const sign = o.type === 'income' ? '+' : o.type === 'expense' ? '−' : '→ ';
+      const d = new Date(o.created_at);
+      const when = isNaN(d) ? '' : d.toLocaleString(state.lang === 'ru' ? 'ru-RU' : 'en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+      return `<div class="op">
+        <div class="ico ${esc(o.type)}">${ICON[o.type] || '•'}</div>
+        <div class="mid"><div class="title">${esc(opTitle(o))}</div><div class="sub">${esc(w ? w.name : '#' + o.wallet_id)} · ${esc(when)}</div></div>
+        <div class="amt ${esc(o.type)}">${esc(sign + fmt(o.amount))} ${esc(SYMBOL[o.currency] || '')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ---------------------------------------------------------------- dialogs
+  const walletOptions = () => state.wallets.map(w => `<option value="${w.id}" data-name="${esc(w.name)}">${esc(w.name)} — ${esc(fmt(w.balance))} ${esc(w.currency.toUpperCase())}</option>`).join('');
+
+  function openDialog(dlg) { if (!dlg.open) dlg.showModal(); }
+  function closeDialogs() { document.querySelectorAll('dialog[open]').forEach(d => d.close()); }
+
+  function openWallet() {
+    $('walletForm').reset();
+    openDialog($('walletDlg'));
+    setTimeout(() => $('wName').focus(), 50);
+  }
+
+  function openMoney(mode, preselect) {
+    if (!state.wallets.length) { toast(t('needWallet'), true); return; }
+    state.moneyMode = mode;
+    $('moneyTitle').textContent = mode === 'income' ? t('addIncome') : t('addExpense');
+    $('mSubmit').textContent = t('add');
+    $('mSubmit').className = 'btn ' + (mode === 'income' ? 'btn-green' : 'btn-red');
+    $('mWallet').innerHTML = walletOptions();
+    if (preselect) $('mWallet').value = preselect;
+    $('mAmount').value = ''; $('mDesc').value = '';
+    updateMoneyHint();
+    openDialog($('moneyDlg'));
+    setTimeout(() => $('mAmount').focus(), 50);
+  }
+
+  function updateMoneyHint() {
+    const w = walletById($('mWallet').value);
+    $('mHint').textContent = w && state.moneyMode === 'expense' ? `${t('available')}: ${money(w.balance, w.currency)}` : '';
+  }
+
+  function openTransfer() {
+    if (state.wallets.length < 2) { toast(t('needTwo'), true); return; }
+    $('tFrom').innerHTML = walletOptions();
+    $('tTo').innerHTML = walletOptions();
+    $('tTo').selectedIndex = 1;
+    $('tAmount').value = '';
+    updateTransferHint();
+    openDialog($('transferDlg'));
+    setTimeout(() => $('tAmount').focus(), 50);
+  }
+
+  function updateTransferHint() {
+    const a = walletById($('tFrom').value), b = walletById($('tTo').value);
+    $('tHint').textContent = a ? `${t('available')}: ${money(a.balance, a.currency)}` : '';
+    $('tConvert').textContent = a && b && a.currency !== b.currency ? t('convertNote') : '';
+  }
+
+  async function submit(btn, fn) {
+    btn.disabled = true;
+    try { await fn(); } catch (e) { toast(e.message, true); } finally { btn.disabled = false; }
+  }
+
+  // ---------------------------------------------------------------- events
+  $('authForm').addEventListener('submit', e => { e.preventDefault(); enter($('loginInput').value.trim(), false); });
+  $('registerBtn').addEventListener('click', () => enter($('loginInput').value.trim(), true));
+  $('logoutBtn').addEventListener('click', logout);
+
+  $('langBtn').addEventListener('click', () => {
+    state.lang = state.lang === 'ru' ? 'en' : 'ru';
+    localStorage.setItem('ft_lang', state.lang);
+    applyI18n();
+  });
+  $('themeBtn').addEventListener('click', () => {
+    setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  $('newWalletBtn').addEventListener('click', openWallet);
+  $('incomeBtn').addEventListener('click', () => openMoney('income'));
+  $('expenseBtn').addEventListener('click', () => openMoney('expense'));
+  $('transferBtn').addEventListener('click', openTransfer);
+
+  $('wallets').addEventListener('click', e => {
+    const card = e.target.closest('.wallet');
+    if (!card) return;
+    // click on a wallet card filters operations by it (click again to clear)
+    $('fWallet').value = $('fWallet').value === card.dataset.id ? '' : card.dataset.id;
+    renderWallets(); loadOps();
+  });
+
+  ['fWallet', 'fFrom', 'fTo'].forEach(id => $(id).addEventListener('change', () => { renderWallets(); loadOps(); }));
+  $('fReset').addEventListener('click', () => { $('fWallet').value = ''; $('fFrom').value = ''; $('fTo').value = ''; renderWallets(); loadOps(); });
+
+  $('mWallet').addEventListener('change', updateMoneyHint);
+  $('tFrom').addEventListener('change', updateTransferHint);
+  $('tTo').addEventListener('change', updateTransferHint);
+
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeDialogs));
+  document.querySelectorAll('dialog').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.close(); }));
+
+  $('walletForm').addEventListener('submit', e => {
+    e.preventDefault();
+    submit(e.submitter, async () => {
+      await api('/wallets', { method: 'POST', body: {
+        name: $('wName').value.trim(), initial_balance: $('wBalance').value || '0', currency: $('wCurrency').value
+      } });
+      closeDialogs(); toast(t('saved')); await refresh();
+    });
+  });
+
+  $('moneyForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const w = walletById($('mWallet').value);
+    const amount = $('mAmount').value;
+    if (!w) { toast(t('needWallet'), true); return; }
+    if (!(Number(amount) > 0)) { toast(t('badAmount'), true); return; }
+    submit(e.submitter, async () => {
+      await api('/operations/' + state.moneyMode, { method: 'POST', body: {
+        wallet_name: w.name, amount: amount, description: $('mDesc').value.trim() || null
+      } });
+      closeDialogs(); toast(t('saved')); await refresh();
+    });
+  });
+
+  $('transferForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const from = $('tFrom').value, to = $('tTo').value, amount = $('tAmount').value;
+    if (from === to) { toast(t('sameWallet'), true); return; }
+    if (!(Number(amount) > 0)) { toast(t('badAmount'), true); return; }
+    submit(e.submitter, async () => {
+      await api('/operations/transfer', { method: 'POST', body: {
+        from_wallet_id: Number(from), to_wallet_id: Number(to), amount: amount
+      } });
+      closeDialogs(); toast(t('saved')); await refresh();
+    });
+  });
+
+  // ---------------------------------------------------------------- boot
+  (async function boot() {
+    setTheme(localStorage.getItem('ft_theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    applyI18n();
+    if (state.token) {
+      try {
+        state.user = await api('/users/me');
+        await showApp();
+        return;
+      } catch (e) { state.token = ''; state.user = null; localStorage.removeItem('ft_token'); }
+    }
+    $('authView').classList.remove('hidden');
+  })();
+})();
+</script>
+</body>
+</html>
